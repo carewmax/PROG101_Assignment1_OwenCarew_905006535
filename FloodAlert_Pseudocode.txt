@@ -1,0 +1,158 @@
+// =====================================================
+// FloodAlert Salone - Community Flood Early-Warning System
+// PROG101 Assignment - Pseudocode (Gaddis style)
+// =====================================================
+
+// ---------- Global constants ----------
+Constant Real HEAVY_RAIN = 30.0       // mm of rain in one hour
+Constant Real EXTREME_RAIN = 50.0     // mm of rain in one hour
+Constant Real WARNING_LEVEL = 1.5     // drain/river water level (m)
+Constant Real DANGER_LEVEL = 2.5      // drain/river water level (m)
+Constant Integer MAX_RESIDENTS = 500
+
+// ---------- Global variables (shared by modules) ----------
+Declare String residentName[MAX_RESIDENTS]
+Declare String residentPhone[MAX_RESIDENTS]
+Declare String residentCommunity[MAX_RESIDENTS]
+Declare Integer residentCount = 0
+Declare Integer totalChecks = 0
+Declare Integer totalAlertsSent = 0
+
+// ---------- Main module ----------
+Module main()
+   Declare Integer choice
+   Do
+      Call displayMenu()
+      Display "Enter your choice (1-4): "
+      Input choice
+      Select choice
+         Case 1:
+            Call registerResident()
+         Case 2:
+            Call checkFloodRisk()
+         Case 3:
+            Call viewReport()
+         Case 4:
+            Display "Goodbye. Stay safe!"
+         Default:
+            Display "Invalid choice. Please enter 1 to 4."
+      End Select
+   While choice != 4
+End Module
+
+// ---------- Display the menu ----------
+Module displayMenu()
+   Display "===== FloodAlert Salone ====="
+   Display "1. Register resident"
+   Display "2. Check flood risk and send alerts"
+   Display "3. View report"
+   Display "4. Exit"
+End Module
+
+// ---------- Register a resident ----------
+Module registerResident()
+   Declare String name, phone, community
+   Display "Enter resident name: "
+   Input name
+   Display "Enter phone number (9 digits, e.g. 076123456): "
+   Input phone
+   While length(phone) != 9              // validation loop
+      Display "Phone must have 9 digits. Re-enter: "
+      Input phone
+   End While
+   Display "Enter community (e.g. Kroo Bay): "
+   Input community
+   Set residentName[residentCount] = name
+   Set residentPhone[residentCount] = phone
+   Set residentCommunity[residentCount] = community
+   Set residentCount = residentCount + 1
+   Display "Resident registered. Total residents: ", residentCount
+End Module
+
+// ---------- Check flood risk for a community ----------
+Module checkFloodRisk()
+   Declare String community, risk
+   Declare Real rainfall, riverLevel
+   Display "Enter community name: "
+   Input community
+   Display "Enter rainfall in the last hour (mm): "
+   Input rainfall
+   While rainfall < 0                     // validation loop
+      Display "Invalid - rainfall cannot be negative. Re-enter: "
+      Input rainfall
+   End While
+   Display "Enter drain/river water level (m): "
+   Input riverLevel
+   While riverLevel < 0                   // validation loop
+      Display "Invalid - water level cannot be negative. Re-enter: "
+      Input riverLevel
+   End While
+   Set risk = calculateRisk(rainfall, riverLevel)   // function call
+   Set totalChecks = totalChecks + 1
+   Display "Community: ", community
+   Display "Risk level: ", risk
+   Display getMessage(risk)
+   If risk == "GREEN" Then
+      Display "No alert needed."
+   Else
+      Call sendAlerts(community, risk)
+   End If
+End Module
+
+// ---------- FUNCTION: work out the risk level ----------
+Function String calculateRisk(Real rainfall, Real riverLevel)
+   Declare String risk
+   If rainfall >= EXTREME_RAIN OR riverLevel >= DANGER_LEVEL Then
+      Set risk = "RED"
+   Else If rainfall >= HEAVY_RAIN AND riverLevel >= WARNING_LEVEL Then
+      Set risk = "ORANGE"
+   Else If rainfall >= HEAVY_RAIN OR riverLevel >= WARNING_LEVEL Then
+      Set risk = "YELLOW"
+   Else
+      Set risk = "GREEN"
+   End If
+   Return risk
+End Function
+
+// ---------- FUNCTION: choose the safety message ----------
+Function String getMessage(String risk)
+   Declare String message
+   Select risk
+      Case "RED":
+         Set message = "RED ALERT: Flooding expected. Move to higher ground NOW and follow NDMA instructions."
+      Case "ORANGE":
+         Set message = "ORANGE WARNING: High flood risk. Prepare to move. Keep children away from drains."
+      Case "YELLOW":
+         Set message = "YELLOW ALERT: Heavy rain or rising water. Stay alert and clear your drains."
+      Default:
+         Set message = "GREEN: Normal conditions."
+   End Select
+   Return message
+End Function
+
+// ---------- Send SMS to residents of one community ----------
+Module sendAlerts(String community, String risk)
+   Declare Integer index
+   Declare Integer sent = 0
+   Declare String message = getMessage(risk)
+   For index = 0 To residentCount - 1           // count-controlled loop
+      If residentCommunity[index] == community Then   // decision inside loop
+         Call sendSMS(residentPhone[index], message)  // provided by the SMS gateway
+         Set sent = sent + 1
+      End If
+   End For
+   Set totalAlertsSent = totalAlertsSent + sent
+   Display sent, " residents alerted in ", community
+End Module
+
+// ---------- Summary report ----------
+Module viewReport()
+   Declare Integer index
+   Display "===== FloodAlert Salone Report ====="
+   Display "Registered residents: ", residentCount
+   Display "Flood checks done: ", totalChecks
+   Display "SMS alerts sent: ", totalAlertsSent
+   For index = 0 To residentCount - 1
+      Display index + 1, ". ", residentName[index], " - ", residentCommunity[index]
+   End For
+End Module
