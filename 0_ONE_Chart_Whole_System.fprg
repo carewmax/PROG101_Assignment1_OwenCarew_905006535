@@ -1,0 +1,142 @@
+<?xml version='1.0' encoding='utf-8'?>
+<flowgorithm fileversion="2.11">
+    <attributes>
+        <attribute name="name" value="FloodAlert Salone - whole system in one chart" />
+        <attribute name="authors" value="Owen Carew (905006535)" />
+        <attribute name="about" value="PROG101 Assignment 1 - FloodAlert Salone" />
+        <attribute name="saved" value="2026-11-06 10:00:00 AM" />
+    </attributes>
+    <function name="Main" type="None" variable="">
+        <parameters />
+        <body>
+            <declare name="residentName" type="String" array="True" size="500" />
+            <declare name="residentPhone" type="String" array="True" size="500" />
+            <declare name="residentCommunity" type="String" array="True" size="500" />
+            <declare name="residentCount" type="Integer" array="False" size="" />
+            <declare name="stats" type="Integer" array="True" size="2" />
+            <assign variable="residentCount" expression="0" />
+            <assign variable="stats[0]" expression="0" />
+            <assign variable="stats[1]" expression="0" />
+            <assign variable="residentCount" expression="loadSampleResidents(residentName, residentPhone, residentCommunity)" />
+            <declare name="community" type="String" array="False" size="" />
+            <declare name="risk" type="String" array="False" size="" />
+            <declare name="rainfall" type="Real" array="False" size="" />
+            <declare name="riverLevel" type="Real" array="False" size="" />
+            <declare name="index" type="Integer" array="False" size="" />
+            <declare name="sent" type="Integer" array="False" size="" />
+            <output expression="&quot;Enter community name: &quot;" newline="True" />
+            <input variable="community" />
+            <output expression="&quot;Enter rainfall in the last hour (mm): &quot;" newline="True" />
+            <input variable="rainfall" />
+            <while expression="rainfall &lt; 0">
+                <output expression="&quot;Invalid - rainfall cannot be negative. Re-enter: &quot;" newline="True" />
+                <input variable="rainfall" />
+            </while>
+            <output expression="&quot;Enter drain/river water level (m): &quot;" newline="True" />
+            <input variable="riverLevel" />
+            <while expression="riverLevel &lt; 0">
+                <output expression="&quot;Invalid - water level cannot be negative. Re-enter: &quot;" newline="True" />
+                <input variable="riverLevel" />
+            </while>
+            <if expression="rainfall &gt;= 50 || riverLevel &gt;= 2.5">
+                <then>
+                    <assign variable="risk" expression="&quot;RED&quot;" />
+                </then>
+                <else>
+                    <if expression="rainfall &gt;= 30 &amp;&amp; riverLevel &gt;= 1.5">
+                        <then>
+                            <assign variable="risk" expression="&quot;ORANGE&quot;" />
+                        </then>
+                        <else>
+                            <if expression="rainfall &gt;= 30 || riverLevel &gt;= 1.5">
+                                <then>
+                                    <assign variable="risk" expression="&quot;YELLOW&quot;" />
+                                </then>
+                                <else>
+                                    <assign variable="risk" expression="&quot;GREEN&quot;" />
+                                </else>
+                            </if>
+                        </else>
+                    </if>
+                </else>
+            </if>
+            <output expression="&quot;Community: &quot; &amp; community" newline="True" />
+            <output expression="&quot;Risk level: &quot; &amp; risk" newline="True" />
+            <output expression="getMessage(risk)" newline="True" />
+            <if expression="risk == &quot;GREEN&quot;">
+                <then>
+                    <output expression="&quot;No alert needed.&quot;" newline="True" />
+                </then>
+                <else>
+                    <assign variable="sent" expression="0" />
+                    <for variable="index" start="0" end="residentCount - 1" direction="inc" step="1">
+                        <if expression="residentCommunity[index] == community">
+                            <then>
+                                <output expression="&quot;SMS to &quot; &amp; residentPhone[index]" newline="True" />
+                                <assign variable="sent" expression="sent + 1" />
+                            </then>
+                            <else />
+                        </if>
+                    </for>
+                    <output expression="sent &amp; &quot; residents alerted in &quot; &amp; community" newline="True" />
+                </else>
+            </if>
+        </body>
+    </function>
+    <function name="loadSampleResidents" type="Integer" variable="count">
+        <parameters>
+            <parameter name="residentName" type="String" array="True" />
+            <parameter name="residentPhone" type="String" array="True" />
+            <parameter name="residentCommunity" type="String" array="True" />
+        </parameters>
+        <body>
+            <declare name="count" type="Integer" array="False" size="" />
+            <assign variable="residentName[0]" expression="&quot;Aminata Kamara&quot;" />
+            <assign variable="residentPhone[0]" expression="&quot;076111111&quot;" />
+            <assign variable="residentCommunity[0]" expression="&quot;Kroo Bay&quot;" />
+            <assign variable="residentName[1]" expression="&quot;Mohamed Sesay&quot;" />
+            <assign variable="residentPhone[1]" expression="&quot;076222222&quot;" />
+            <assign variable="residentCommunity[1]" expression="&quot;Culvert&quot;" />
+            <assign variable="residentName[2]" expression="&quot;Fatmata Conteh&quot;" />
+            <assign variable="residentPhone[2]" expression="&quot;076333333&quot;" />
+            <assign variable="residentCommunity[2]" expression="&quot;Kroo Bay&quot;" />
+            <assign variable="residentName[3]" expression="&quot;Ibrahim Bangura&quot;" />
+            <assign variable="residentPhone[3]" expression="&quot;076444444&quot;" />
+            <assign variable="residentCommunity[3]" expression="&quot;Kroo Bay&quot;" />
+            <assign variable="residentName[4]" expression="&quot;Mariama Koroma&quot;" />
+            <assign variable="residentPhone[4]" expression="&quot;076555555&quot;" />
+            <assign variable="residentCommunity[4]" expression="&quot;Mabella&quot;" />
+            <assign variable="count" expression="5" />
+        </body>
+    </function>
+    <function name="getMessage" type="String" variable="message">
+        <parameters>
+            <parameter name="risk" type="String" array="False" />
+        </parameters>
+        <body>
+            <declare name="message" type="String" array="False" size="" />
+            <if expression="risk == &quot;RED&quot;">
+                <then>
+                    <assign variable="message" expression="&quot;RED ALERT: Flooding expected. Move to higher ground NOW and follow NDMA instructions.&quot;" />
+                </then>
+                <else>
+                    <if expression="risk == &quot;ORANGE&quot;">
+                        <then>
+                            <assign variable="message" expression="&quot;ORANGE WARNING: High flood risk. Prepare to move. Keep children away from drains.&quot;" />
+                        </then>
+                        <else>
+                            <if expression="risk == &quot;YELLOW&quot;">
+                                <then>
+                                    <assign variable="message" expression="&quot;YELLOW ALERT: Heavy rain or rising water. Stay alert and clear your drains.&quot;" />
+                                </then>
+                                <else>
+                                    <assign variable="message" expression="&quot;GREEN: Normal conditions.&quot;" />
+                                </else>
+                            </if>
+                        </else>
+                    </if>
+                </else>
+            </if>
+        </body>
+    </function>
+</flowgorithm>
